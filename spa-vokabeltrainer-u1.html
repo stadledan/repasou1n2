@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SPA · U1 La moda — Testtrainer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,650;1,9..144,500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F4F6F8; --card:#FFFFFF; --ink:#101826; --muted:#6B7480;
+    --line:#E5E8EC;
+    --azul:#16348C; --azul-soft:#EBEFFA;
+    --sol:#F5B700; --sol-soft:#FFF6D9;
+    --ok:#1E7E4E; --ok-soft:#E7F4EC;
+    --warn:#A06D00; --warn-soft:#FFF4D6;
+    --bad:#B3372B; --bad-soft:#FBEAE7;
+    --r:18px;
+    --shadow:0 1px 2px rgba(16,24,38,.06), 0 8px 24px rgba(16,24,38,.07);
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0; padding:0;}
+  body{
+    background:var(--bg); color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    font-size:16px; line-height:1.45;
+    padding-bottom:48px;
+  }
+  .wrap{max-width:560px; margin:0 auto; padding:0 16px;}
+
+  /* ---------- Header ---------- */
+  header{padding:20px 0 10px;}
+  .brand{display:flex; align-items:baseline; justify-content:space-between; gap:12px;}
+  .brand h1{
+    font-family:"Fraunces",Georgia,serif; font-weight:650; font-style:italic;
+    font-size:1.7rem; margin:0; letter-spacing:-.01em;
+  }
+  .brand h1 .sol{color:var(--azul);}
+  .count-pill{
+    font-size:.8rem; font-weight:600; color:var(--azul);
+    background:var(--azul-soft); border-radius:999px; padding:4px 10px; white-space:nowrap;
+  }
+  .sub{margin:2px 0 0; color:var(--muted); font-size:.85rem;}
+
+  /* ---------- Segmented control ---------- */
+  .seg{
+    display:grid; grid-template-columns:repeat(4,1fr); gap:4px;
+    background:#E8EBEF; border-radius:14px; padding:4px; margin:14px 0 10px;
+  }
+  .seg button{
+    border:0; background:transparent; border-radius:11px; padding:9px 4px;
+    font-size:.85rem; font-weight:600; color:var(--muted); cursor:pointer;
+    font-family:inherit; transition:background .15s,color .15s;
+  }
+  .seg button.on{background:#fff; color:var(--ink); box-shadow:0 1px 3px rgba(16,24,38,.12);}
+
+  /* ---------- Chips ---------- */
+  .chips{display:flex; gap:8px; overflow-x:auto; padding:2px 0 12px; scrollbar-width:none;}
+  .chips::-webkit-scrollbar{display:none;}
+  .chip{
+    flex:0 0 auto; border:1px solid var(--line); background:#fff; color:var(--ink);
+    border-radius:999px; padding:7px 13px; font-size:.82rem; font-weight:600;
+    cursor:pointer; font-family:inherit; transition:all .15s;
+  }
+  .chip small{color:var(--muted); font-weight:500;}
+  .chip.on{background:var(--azul); border-color:var(--azul); color:#fff;}
+  .chip.on small{color:#C9D4F2;}
+  .chip.err.on{background:var(--bad); border-color:var(--bad);}
+
+  /* ---------- Cards ---------- */
+  .card{
+    background:var(--card); border-radius:var(--r); box-shadow:var(--shadow);
+    padding:22px; margin-bottom:12px;
+  }
+  .label{
+    font-size:.72rem; font-weight:700; letter-spacing:.08em; text-transform:uppercase;
+    color:var(--muted); margin-bottom:8px;
+  }
+
+  /* Lernen: Flashcard */
+  .flash{
+    min-height:230px; display:flex; flex-direction:column; align-items:center;
+    justify-content:center; text-align:center; cursor:pointer; user-select:none;
+    position:relative;
+  }
+  .flash .front-word{font-size:1.35rem; font-weight:600;}
+  .flash .es-word{
+    font-family:"Fraunces",Georgia,serif; font-weight:650; font-size:2rem;
+    color:var(--azul); line-height:1.15; padding-bottom:6px;
+    background:linear-gradient(transparent 78%, var(--sol-soft) 0);
+  }
+  .flash .hint-tag{
+    display:inline-block; margin-top:10px; font-size:.78rem; font-weight:600;
+    color:var(--warn); background:var(--warn-soft); border-radius:8px; padding:3px 9px;
+  }
+  .flash .note{margin-top:12px; font-size:.88rem; color:var(--muted);}
+  .flash .ej{margin-top:8px; font-size:.92rem; font-style:italic; color:var(--ink); opacity:.8;}
+  .flash .tap{position:absolute; bottom:10px; font-size:.78rem; color:var(--muted);}
+  .progress-line{display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;}
+  .progress-line .pos{font-size:.85rem; font-weight:600; color:var(--muted);}
+  .dirbtn{
+    border:1px solid var(--line); background:#fff; border-radius:999px;
+    font-size:.78rem; font-weight:600; color:var(--azul); padding:5px 11px;
+    cursor:pointer; font-family:inherit;
+  }
+  .bar{height:5px; background:#E8EBEF; border-radius:99px; overflow:hidden; margin-bottom:14px;}
+  .bar i{display:block; height:100%; background:var(--sol); border-radius:99px; transition:width .25s;}
+
+  .btnrow{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
+  .btn{
+    border:0; border-radius:14px; padding:15px 10px; font-size:1rem; font-weight:700;
+    cursor:pointer; font-family:inherit; transition:transform .06s;
+  }
+  .btn:active{transform:scale(.97);}
+  .btn.again{background:var(--bad-soft); color:var(--bad);}
+  .btn.know{background:var(--azul); color:#fff;}
+  .btn.primary{background:var(--azul); color:#fff; width:100%;}
+  .btn.ghost{background:#fff; border:1px solid var(--line); color:var(--ink); width:100%;}
+  .btn:disabled{opacity:.4; cursor:default;}
+
+  /* Tippen */
+  .prompt-word{font-size:1.3rem; font-weight:600; margin:2px 0 2px;}
+  .prompt-hint{font-size:.8rem; font-weight:600; color:var(--warn); margin-top:2px;}
+  input.answer{
+    width:100%; margin-top:14px; border:1.5px solid var(--line); border-radius:13px;
+    padding:13px 14px; font-size:1.1rem; font-family:inherit; color:var(--ink);
+    background:#FAFBFC; outline:none;
+  }
+  input.answer:focus{border-color:var(--azul); background:#fff;}
+  .accents{display:flex; gap:7px; margin-top:10px; flex-wrap:wrap;}
+  .acc{
+    border:1px solid var(--line); background:#fff; border-radius:10px;
+    min-width:42px; padding:8px 0; font-size:1.05rem; font-weight:600; color:var(--azul);
+    cursor:pointer; font-family:inherit;
+  }
+  .acc:active{background:var(--azul-soft);}
+  .feedback{border-radius:13px; padding:13px 15px; margin-top:13px; font-size:.95rem;}
+  .feedback .big{font-family:"Fraunces",Georgia,serif; font-size:1.3rem; font-weight:650; margin-top:3px;}
+  .feedback.ok{background:var(--ok-soft); color:var(--ok);}
+  .feedback.mid{background:var(--warn-soft); color:var(--warn);}
+  .feedback.bad{background:var(--bad-soft); color:var(--bad);}
+  .feedback .fb-note{font-size:.85rem; opacity:.85; margin-top:4px;}
+  .score-line{font-size:.85rem; color:var(--muted); margin-top:10px; text-align:center;}
+
+  /* Grammatik */
+  .gq{font-size:1.15rem; font-weight:600; margin-bottom:4px;}
+  .gq-hint{font-size:.85rem; color:var(--muted); margin-bottom:12px;}
+  .opts{display:flex; flex-direction:column; gap:9px;}
+  .opt{
+    border:1.5px solid var(--line); background:#fff; border-radius:13px;
+    padding:13px 15px; font-size:1rem; font-weight:600; text-align:left;
+    cursor:pointer; font-family:inherit; color:var(--ink); transition:all .12s;
+  }
+  .opt.right{border-color:var(--ok); background:var(--ok-soft); color:var(--ok);}
+  .opt.wrong{border-color:var(--bad); background:var(--bad-soft); color:var(--bad);}
+  .expl{
+    margin-top:12px; border-left:3px solid var(--sol); background:var(--sol-soft);
+    border-radius:0 11px 11px 0; padding:10px 13px; font-size:.9rem;
+  }
+
+  /* Schreiben */
+  .modelo{
+    font-family:"Fraunces",Georgia,serif; font-size:1.12rem; line-height:1.65;
+    background:var(--azul-soft); border-radius:13px; padding:16px 18px; margin-top:8px;
+  }
+  .modelo b{color:var(--azul);}
+  .chunk{margin:7px 0; padding-left:14px; border-left:3px solid var(--sol); font-size:.95rem;}
+  .chunk i{color:var(--muted); font-style:normal; font-size:.85rem;}
+  ul.check{list-style:none; padding:0; margin:6px 0 0;}
+  ul.check li{padding:6px 0 6px 28px; position:relative; font-size:.95rem; border-bottom:1px solid var(--line);}
+  ul.check li:last-child{border-bottom:0;}
+  ul.check li::before{content:"☐"; position:absolute; left:2px; color:var(--azul); font-size:1.05rem;}
+
+  /* End screen */
+  .end{text-align:center; padding:34px 18px;}
+  .end .big-num{font-family:"Fraunces",Georgia,serif; font-size:2.6rem; font-weight:650; color:var(--azul);}
+  .end p{color:var(--muted); margin:6px 0 18px;}
+  .end .btn{margin-top:8px;}
+
+  .empty{text-align:center; color:var(--muted); padding:40px 16px;}
+  .empty .emo{font-size:2rem; display:block; margin-bottom:8px;}
+
+  footer{text-align:center; color:var(--muted); font-size:.8rem; margin-top:26px;}
+  @media (prefers-reduced-motion: reduce){ *{transition:none !important;} }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="brand">
+      <h1>¡Vamos<span class="sol">!</span></h1>
+      <span class="count-pill" id="headPill">71 Wörter</span>
+    </div>
+    <p class="sub">Unidad 1 · La moda — bis Nr. 6 + Schulübung · Test: Do, 11. 6.</p>
+  </header>
+
+  <nav class="seg" id="seg">
+    <button data-m="lernen" class="on">Lernen</button>
+    <button data-m="tippen">Tippen</button>
+    <button data-m="gram">Grammatik</button>
+    <button data-m="text">Schreiben</button>
+  </nav>
+
+  <div class="chips" id="chips"></div>
+
+  <main id="view"></main>
+
+  <footer>SPA · 2AVK · ¡Mucha suerte! 🍀</footer>
+</div>
+
+<script>
+/* ================= DATEN ================= */
+/* de = Deutsch (Veritas-Wortlaut) · es = akzeptierte Antworten · sh = Anzeige
+   b = Block · hint = Hinweis VOR der Antwort · n = Notiz NACH der Antwort · ej = Beispielsatz */
+const V = [
+ // Block A — Sektion 1 + 2
+ {de:"die Mode", es:["la moda"], b:"A"},
+ {de:"die Marke", es:["la marca"], b:"A"},
+ {de:"die Saison", es:["la temporada"], b:"A"},
+ {de:"die Jahreszeit", es:["la estación"], b:"A"},
+ {de:"der Frühling", es:["la primavera"], b:"A"},
+ {de:"der Sommer", es:["el verano"], b:"A"},
+ {de:"der Herbst", es:["el otoño"], b:"A"},
+ {de:"der Winter", es:["el invierno"], b:"A"},
+ {de:"anhaben, tragen", es:["llevar"], b:"A", ej:"Hoy llevo una camisa de mi padre."},
+ {de:"die Jacke", es:["la chaqueta"], b:"A"},
+ {de:"der Schal", es:["la bufanda"], b:"A"},
+ {de:"die Haube", es:["el gorro"], b:"A"},
+ {de:"die Kombination", es:["la combinación"], b:"A"},
+ {de:"das T-Shirt", es:["la camiseta"], b:"A"},
+ {de:"das Hemd", es:["la camisa"], b:"A"},
+ {de:"kariert", es:["a cuadros","de cuadros"], sh:"a cuadros / de cuadros", b:"A", n:"Buch: a cuadros · Schulübung: de cuadros — beides ok", ej:"Llevo una camisa a cuadros."},
+ {de:"der Hut", es:["el sombrero"], b:"A"},
+ {de:"der Pullover", es:["el jersey"], b:"A"},
+ {de:"der Schuh", es:["el zapato"], b:"A"},
+ {de:"das Leder", es:["el cuero","la piel"], sh:"el cuero", b:"A", n:"auch: la piel"},
+ {de:"die Hose", es:["los pantalones"], b:"A", hint:"im Spanischen Plural!"},
+ {de:"cremefarben", es:["crema"], b:"A", n:"unveränderlich — wird nie angeglichen"},
+ {de:"beige", es:["beige"], b:"A", n:"unveränderlich — wird nie angeglichen"},
+ // Block B — Sektion 3 + 4
+ {de:"die Jeans", es:["los vaqueros"], b:"B", hint:"Plural!"},
+ {de:"der Minirock", es:["la minifalda"], b:"B"},
+ {de:"die Bluse", es:["la blusa"], b:"B"},
+ {de:"das Kleid", es:["el vestido"], b:"B"},
+ {de:"der Anzug", es:["el traje"], b:"B"},
+ {de:"die Krawatte", es:["la corbata"], b:"B"},
+ {de:"der Bikini", es:["el bikini"], b:"B"},
+ {de:"die Socken", es:["los calcetines"], b:"B"},
+ {de:"der Mantel", es:["el abrigo"], b:"B"},
+ {de:"der Handschuh", es:["el guante"], b:"B"},
+ {de:"die Herrenunterhose", es:["los calzoncillos"], b:"B", hint:"Plural!"},
+ {de:"die Damenunterhose", es:["las bragas"], b:"B", hint:"Plural!"},
+ {de:"der BH", es:["el sujetador"], b:"B"},
+ {de:"die Sonnenbrille", es:["las gafas de sol"], b:"B", hint:"Plural!"},
+ {de:"der Gürtel", es:["el cinturón"], b:"B"},
+ {de:"der Kapuzenpulli", es:["la sudadera"], b:"B"},
+ {de:"der Trainingsanzug", es:["el chándal"], b:"B"},
+ {de:"die Sportschuhe", es:["las zapatillas de deporte"], b:"B"},
+ {de:"der Badeanzug", es:["el bañador"], b:"B"},
+ {de:"die Kleidung", es:["la ropa"], b:"B", ej:"Prefiero llevar ropa cómoda."},
+ {de:"scheinen, wirken", es:["parecer"], b:"B", ej:"¿Os parece bien este vestido para la fiesta?"},
+ // Block C — Sektion 5 + 6
+ {de:"der Kunde / die Kundin", es:["el cliente","la clienta","el/la cliente/-a","el/la cliente"], sh:"el/la cliente/-a", b:"C"},
+ {de:"das Kleidungsstück", es:["la prenda"], b:"C"},
+ {de:"die Größe (Kleidung)", es:["la talla"], b:"C"},
+ {de:"die Schuhgröße", es:["el número"], b:"C", ej:"¿Los tiene en el número 42?"},
+ {de:"die (Kredit-)Karte", es:["la tarjeta","la tarjeta de crédito"], sh:"la tarjeta (de crédito)", b:"C"},
+ {de:"die Baumwolle", es:["el algodón"], b:"C", ej:"Es de algodón."},
+ {de:"die Wolle", es:["la lana"], b:"C", ej:"Tengo un gorro de lana."},
+ {de:"das Leinen", es:["el lino"], b:"C"},
+ {de:"der synthetische Stoff", es:["el tejido sintético"], b:"C"},
+ {de:"das Leder / die Haut", es:["la piel","el cuero"], sh:"la piel", b:"C", n:"de piel = aus Leder"},
+ {de:"passen (Größe)", es:["quedar"], b:"C", n:"funktioniert wie gustar: me queda / me quedan", ej:"No me quedan bien estos pantalones."},
+ {de:"Größe M", es:["la talla mediana","talla mediana"], sh:"la talla mediana", b:"C"},
+ {de:"Größe L", es:["la talla grande","talla grande"], sh:"la talla grande", b:"C"},
+ {de:"die Umkleidekabinen", es:["los probadores"], b:"C"},
+ {de:"mitnehmen (etwas)", es:["llevarse","llevarse algo"], sh:"llevarse (algo)", b:"C", ej:"¿Te llevas la falda también?"},
+ {de:"der Rock", es:["la falda"], b:"C"},
+ {de:"elegant", es:["elegante"], b:"C"},
+ // Block D — Schulübung
+ {de:"violett / lila", es:["violeta","lila"], sh:"violeta / lila", b:"D", n:"unveränderlich — wird nie angeglichen"},
+ {de:"rosa", es:["rosa"], b:"D", n:"unveränderlich — wird nie angeglichen"},
+ {de:"orange", es:["naranja"], b:"D", n:"unveränderlich — wird nie angeglichen"},
+ {de:"gestreift", es:["de rayas","a rayas"], sh:"de rayas", b:"D", n:"⚠️ rayas = Streifen · rayos = Blitze! (Tippfehler in der Mitschrift)"},
+ {de:"gepunktet", es:["de lunares"], b:"D"},
+ {de:"mit Motiv / Aufdruck", es:["con dibujo"], b:"D"},
+ {de:"bedruckt, gemustert", es:["estampado","estampada","estampado/-a"], sh:"estampado/-a", b:"D"},
+ {de:"die Seide", es:["la seda"], b:"D", n:"aus Seide = de seda"},
+ {de:"(sich) anziehen (+ Kleidungsstück)", es:["ponerse"], b:"D", n:"me pongo, te pones, se pone …", ej:"Para mi primera cita me pongo una camisa blanca."},
+ {de:"sich anziehen (allgemein)", es:["vestirse"], b:"D", n:"e → i: me visto, te vistes, se viste"}
+];
+V.forEach((v,i)=>v.id=i);
+
+const GRAM = [
+ {q:"Las camisetas son …", h:"(rosa)", o:["rosas","rosa","roses"], c:1,
+  e:"rosa bleibt IMMER gleich — genauso wie naranja, violeta/lila, beige und crema."},
+ {q:"Los pantalones …", h:"(naranja)", o:["naranjos","naranja","naranjas"], c:1,
+  e:"naranja wird nicht angeglichen."},
+ {q:"Las zapatillas …", h:"(gris)", o:["gris","grisas","grises"], c:2,
+  e:"gris ist ein normales Adjektiv → Plural grises. Nur rosa, naranja, violeta/lila, beige, crema bleiben gleich."},
+ {q:"Quiero las zapatillas … gris.", h:"(Turnschuhe in Grau)", o:["de","en","a"], c:1,
+  e:"en gris = „in Grau“ (die Farbe als Konzept). Vergleiche: zapatillas grises = graue Turnschuhe."},
+ {q:"„kariert“: una camisa …", h:"", o:["a cuadros","de cuadros","beides ist richtig"], c:2,
+  e:"Im Buch steht a cuadros, in der Schulübung de cuadros — beide Varianten sind ok."},
+ {q:"„gestreift“ heißt …", h:"", o:["de rayos","de rayas","de royas"], c:1,
+  e:"⚠️ rayas = Streifen. rayos = Blitze! In deiner Mitschrift steht fälschlich „de rayos“."},
+ {q:"El jersey es … lana.", h:"(Material)", o:["de","con","en"], c:0,
+  e:"Material immer mit de: de algodón, de lino, de lana, de cuero, de seda …"},
+ {q:"una camiseta … dibujo", h:"(mit Aufdruck)", o:["de","con","a"], c:1,
+  e:"con dibujo = mit Motiv/Aufdruck. Bei Mustern sonst: de rayas, de lunares, de/a cuadros."},
+ {q:"Para la cita me … un traje.", h:"(ponerse, yo)", o:["pongo","pones","pone"], c:0,
+  e:"ponerse ist reflexiv und unregelmäßig: me pongo, te pones, se pone …"},
+ {q:"¿Qué te … hoy?", h:"(ponerse, tú)", o:["pongas","pone","pones"], c:2,
+  e:"2. Person: te pones."},
+ {q:"Hoy … una camisa blanca.", h:"(tragen, yo)", o:["llevo","me llevo","me pongo"], c:0,
+  e:"llevar = tragen/anhaben (ohne me!). me llevo = ich nehme mit (beim Einkaufen)."},
+ {q:"Mi hermano se … muy rápido.", h:"(vestirse)", o:["veste","viste","vieste"], c:1,
+  e:"vestirse hat e → i: me visto, te vistes, se viste."},
+ {q:"Estos pantalones no me … bien.", h:"(quedar)", o:["queda","quedo","quedan"], c:2,
+  e:"quedar funktioniert wie gustar: pantalones = Plural → me quedan."},
+ {q:"„mitnehmen“ (im Geschäft) heißt …", h:"", o:["llevar","llevarse","ponerse"], c:1,
+  e:"¿Te llevas la falda? — llevarse = mitnehmen · llevar = tragen · ponerse = anziehen."}
+];
+
+/* ================= STATE ================= */
+const errors = new Set();          // Fehlerliste (IDs)
+let mode = "lernen";
+let block = "ALL";
+let dir = "de-es";                 // Lernen-Richtung
+let typedRight = 0;
+
+let LQ = [], lIdx = 0, flipped = false;            // Lernen
+let TQ = [], tIdx = 0, tStats = null, tDone = false; // Tippen
+let GQ = [], gIdx = 0, gPicked = false, gScore = 0, gWrong = []; // Grammatik
+
+const $ = s => document.querySelector(s);
+const view = $("#view");
+const shuffle = a => { a=a.slice(); for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; };
+const norm = s => s.toLowerCase().trim().replace(/\s+/g," ");
+const strip = s => norm(s).normalize("NFD").replace(/[\u0300-\u036f]/g,"");
+const esc = s => s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+
+function pool(){
+  if(block==="ALL") return V.slice();
+  if(block==="F")   return V.filter(v=>errors.has(v.id));
+  return V.filter(v=>v.b===block);
+}
+
+/* ================= CHIPS + TABS ================= */
+const BLOCKS = [
+  ["ALL","Alle"], ["A","A · Basics"], ["B","B · Kleidung"],
+  ["C","C · Einkaufen"], ["D","D · Schulübung"], ["F","Fehler"]
+];
+function renderChips(){
+  $("#chips").innerHTML = BLOCKS.map(([k,name])=>{
+    const n = k==="ALL" ? V.length : k==="F" ? errors.size : V.filter(v=>v.b===k).length;
+    return `<button class="chip ${k===block?"on":""} ${k==="F"?"err":""}" data-b="${k}">${name} <small>${n}</small></button>`;
+  }).join("");
+}
+$("#chips").addEventListener("click",e=>{
+  const c = e.target.closest(".chip"); if(!c) return;
+  block = c.dataset.b;
+  startMode();
+});
+$("#seg").addEventListener("click",e=>{
+  const b = e.target.closest("button"); if(!b) return;
+  mode = b.dataset.m;
+  document.querySelectorAll("#seg button").forEach(x=>x.classList.toggle("on",x===b));
+  startMode();
+});
+
+function startMode(){
+  renderChips();
+  if(mode==="lernen"){ LQ = shuffle(pool()); lIdx = 0; flipped = false; renderLernen(); }
+  else if(mode==="tippen"){ TQ = shuffle(pool()); tIdx = 0; tDone = false; tStats = {ok:0,mid:0,bad:0}; renderTippen(); }
+  else if(mode==="gram"){ GQ = shuffle(GRAM.map((g,i)=>i)); gIdx = 0; gScore = 0; gWrong = []; gPicked = false; renderGram(); }
+  else renderText();
+}
+
+/* ================= LERNEN ================= */
+function renderLernen(){
+  if(!LQ.length){ view.innerHTML = emptyState(); return; }
+  if(lIdx >= LQ.length){
+    view.innerHTML = `<div class="card end">
+      <div class="big-num">${LQ.length}</div>
+      <p>Karten durch — stark! 💪</p>
+      ${errors.size ? `<button class="btn ghost" id="goErr">Fehlerliste üben (${errors.size})</button>` : ""}
+      <button class="btn primary" id="reRun">Neue Runde</button>
+    </div>`;
+    $("#reRun").onclick = ()=>startMode();
+    const ge = $("#goErr"); if(ge) ge.onclick = ()=>{ block="F"; startMode(); };
+    return;
+  }
+  const it = LQ[lIdx];
+  const frontDe = dir==="de-es";
+  const front = frontDe ? esc(it.de) : esc(it.sh||it.es[0]);
+  const back  = frontDe ? esc(it.sh||it.es[0]) : esc(it.de);
+  view.innerHTML = `
+    <div class="progress-line">
+      <span class="pos">${lIdx+1} / ${LQ.length}</span>
+      <button class="dirbtn" id="dirT">${frontDe ? "DE → ES" : "ES → DE"} ⇄</button>
+    </div>
+    <div class="bar"><i style="width:${(lIdx/LQ.length)*100}%"></i></div>
+    <div class="card flash" id="flash">
+      ${flipped
+        ? `<div class="${frontDe?"es-word":"front-word"}">${back}</div>
+           ${it.n ? `<div class="note">${esc(it.n)}</div>` : ""}
+           ${it.ej ? `<div class="ej">${esc(it.ej)}</div>` : ""}`
+        : `<div class="${frontDe?"front-word":"es-word"}">${front}</div>
+           ${it.hint ? `<span class="hint-tag">${esc(it.hint)}</span>` : ""}
+           <span class="tap">tippen zum Aufdecken</span>`}
+    </div>
+    <div class="btnrow">
+      <button class="btn again" id="bAgain" ${flipped?"":"disabled"}>Nochmal ⟲</button>
+      <button class="btn know" id="bKnow" ${flipped?"":"disabled"}>Gewusst ✓</button>
+    </div>`;
+  $("#flash").onclick = ()=>{ flipped = !flipped; renderLernen(); };
+  $("#dirT").onclick = e=>{ e.stopPropagation(); dir = dir==="de-es" ? "es-de" : "de-es"; flipped=false; renderLernen(); };
+  $("#bAgain").onclick = ()=>{
+    errors.add(it.id);
+    LQ.splice(Math.min(lIdx+4, LQ.length), 0, it);
+    lIdx++; flipped=false; renderLernen(); renderChips();
+  };
+  $("#bKnow").onclick = ()=>{ lIdx++; flipped=false; renderLernen(); };
+}
+
+/* ================= TIPPEN ================= */
+function evalAns(it, raw){
+  const u = norm(raw);
+  if(!u) return {s:"bad"};
+  const acc = it.es.map(norm);
+  if(acc.includes(u)) return {s:"ok"};
+  const artRe = /^(el\/la |el |la |los |las |un |una |unos |unas )/;
+  const bares = acc.map(a=>a.replace(artRe,""));
+  if(bares.includes(u)) return {s:"mid", m:"Fast! Der Artikel fehlt."};
+  const su = strip(u);
+  if(acc.map(strip).includes(su)) return {s:"mid", m:"Fast! Achte auf Akzent / ñ."};
+  if(bares.map(strip).includes(su)) return {s:"mid", m:"Fast! Artikel und Akzent beachten."};
+  return {s:"bad"};
+}
+function renderTippen(){
+  if(!TQ.length){ view.innerHTML = emptyState(); return; }
+  if(tIdx >= TQ.length){
+    view.innerHTML = `<div class="card end">
+      <div class="big-num">${tStats.ok} / ${TQ.length}</div>
+      <p>richtig getippt · ${tStats.mid} fast · ${tStats.bad} daneben</p>
+      ${errors.size ? `<button class="btn ghost" id="goErr">Fehlerliste üben (${errors.size})</button>` : ""}
+      <button class="btn primary" id="reRun">Neue Runde</button>
+    </div>`;
+    $("#reRun").onclick = ()=>startMode();
+    const ge = $("#goErr"); if(ge) ge.onclick = ()=>{ block="F"; startMode(); };
+    return;
+  }
+  const it = TQ[tIdx];
+  view.innerHTML = `
+    <div class="progress-line"><span class="pos">${tIdx+1} / ${TQ.length}</span>
+      <span class="pos">✓ ${tStats.ok} · ~ ${tStats.mid} · ✗ ${tStats.bad}</span></div>
+    <div class="bar"><i style="width:${(tIdx/TQ.length)*100}%"></i></div>
+    <div class="card">
+      <div class="label">Wie heißt auf Spanisch …</div>
+      <div class="prompt-word">${esc(it.de)}</div>
+      ${it.hint ? `<div class="prompt-hint">${esc(it.hint)}</div>` : ""}
+      <input class="answer" id="ans" type="text" autocomplete="off" autocorrect="off"
+             autocapitalize="off" spellcheck="false" lang="es" placeholder="auf Spanisch tippen …">
+      <div class="accents" id="accs">
+        ${["á","é","í","ó","ú","ñ"].map(c=>`<button class="acc" data-c="${c}">${c}</button>`).join("")}
+      </div>
+      <div id="fb"></div>
+      <div style="margin-top:13px">
+        <button class="btn primary" id="bCheck">Prüfen</button>
+      </div>
+    </div>`;
+  const inp = $("#ans");
+  inp.focus();
+  $("#accs").addEventListener("click",e=>{
+    const b = e.target.closest(".acc"); if(!b) return;
+    const p = inp.selectionStart ?? inp.value.length;
+    inp.value = inp.value.slice(0,p) + b.dataset.c + inp.value.slice(inp.selectionEnd ?? p);
+    inp.focus(); inp.selectionStart = inp.selectionEnd = p+1;
+  });
+  let answered = false;
+  function check(){
+    if(answered) return;
+    answered = true;
+    const r = evalAns(it, inp.value);
+    tStats[r.s === "ok" ? "ok" : r.s === "mid" ? "mid" : "bad"]++;
+    if(r.s === "ok"){ errors.delete(it.id); typedRight++; }
+    else errors.add(it.id);
+    const head = r.s==="ok" ? "¡Correcto! ✓" : r.s==="mid" ? (r.m||"Fast!") : "Leider nein.";
+    $("#fb").innerHTML = `<div class="feedback ${r.s}">
+        ${head}
+        <div class="big">${esc(it.sh||it.es[0])}</div>
+        ${it.n ? `<div class="fb-note">${esc(it.n)}</div>` : ""}
+        ${it.ej ? `<div class="fb-note"><i>${esc(it.ej)}</i></div>` : ""}
+      </div>`;
+    $("#bCheck").textContent = "Weiter →";
+    $("#bCheck").onclick = next;
+    renderChips();
+    inp.blur();
+  }
+  function next(){ tIdx++; renderTippen(); }
+  $("#bCheck").onclick = check;
+  inp.addEventListener("keydown",e=>{
+    if(e.key === "Enter"){ e.preventDefault(); answered ? next() : check(); }
+  });
+}
+
+/* ================= GRAMMATIK ================= */
+function renderGram(){
+  if(gIdx >= GQ.length){
+    view.innerHTML = `<div class="card end">
+      <div class="big-num">${gScore} / ${GQ.length}</div>
+      <p>Grammatik-Fragen richtig</p>
+      ${gWrong.length ? `<button class="btn ghost" id="gAgain">Falsche nochmal (${gWrong.length})</button>` : ""}
+      <button class="btn primary" id="gAll">Alle nochmal</button>
+    </div>`;
+    $("#gAll").onclick = ()=>{ GQ = shuffle(GRAM.map((g,i)=>i)); gIdx=0; gScore=0; gWrong=[]; renderGram(); };
+    const ga = $("#gAgain");
+    if(ga) ga.onclick = ()=>{ GQ = shuffle(gWrong); gIdx=0; gScore=0; gWrong=[]; renderGram(); };
+    return;
+  }
+  const g = GRAM[GQ[gIdx]];
+  const order = shuffle(g.o.map((t,i)=>i));
+  view.innerHTML = `
+    <div class="progress-line"><span class="pos">${gIdx+1} / ${GQ.length}</span><span class="pos">✓ ${gScore}</span></div>
+    <div class="bar"><i style="width:${(gIdx/GQ.length)*100}%"></i></div>
+    <div class="card">
+      <div class="label">Was passt?</div>
+      <div class="gq">${esc(g.q)}</div>
+      ${g.h ? `<div class="gq-hint">${esc(g.h)}</div>` : ""}
+      <div class="opts">
+        ${order.map(i=>`<button class="opt" data-i="${i}">${esc(g.o[i])}</button>`).join("")}
+      </div>
+      <div id="gfb"></div>
+      <div style="margin-top:13px"><button class="btn primary" id="gNext" disabled>Weiter →</button></div>
+    </div>`;
+  gPicked = false;
+  document.querySelectorAll(".opt").forEach(btn=>{
+    btn.onclick = ()=>{
+      if(gPicked) return;
+      gPicked = true;
+      const i = +btn.dataset.i;
+      document.querySelectorAll(".opt").forEach(b=>{
+        const bi = +b.dataset.i;
+        if(bi === g.c) b.classList.add("right");
+        else if(b === btn) b.classList.add("wrong");
+      });
+      if(i === g.c) gScore++; else gWrong.push(GQ[gIdx]);
+      $("#gfb").innerHTML = `<div class="expl">${esc(g.e)}</div>`;
+      $("#gNext").disabled = false;
+    };
+  });
+  $("#gNext").onclick = ()=>{ gIdx++; renderGram(); };
+}
+
+/* ================= SCHREIBEN ================= */
+function renderText(){
+  view.innerHTML = `
+    <div class="card">
+      <div class="label">Aufgabe (wie im Test)</div>
+      <p style="margin:4px 0 0"><b>Para mi primera cita con una chica me pongo …</b><br>
+      <span style="color:var(--muted); font-size:.9rem">Beschreibe dein Outfit: Kleidungsstücke + Farbe, Stoff, Muster.</span></p>
+    </div>
+    <div class="card">
+      <div class="label">Mustertext — 2–3× abschreiben, dann sitzt er</div>
+      <div class="modelo" id="modelo">
+        Para mi primera cita con una chica <b>me pongo</b> una camisa blanca
+        <b>de algodón</b> y unos vaqueros azules. También <b>llevo</b> una chaqueta
+        <b>de cuero</b> negra, un cinturón marrón y unas zapatillas de deporte
+        <b>en gris</b>. <b>Me parece</b> una combinación muy elegante.
+      </div>
+      <div style="margin-top:12px"><button class="btn ghost" id="hideM">Text verdecken &amp; selbst aufsagen</button></div>
+    </div>
+    <div class="card">
+      <div class="label">Baukasten zum Austauschen</div>
+      <div class="chunk"><b>Start:</b> Para mi primera cita (con una chica) me pongo …</div>
+      <div class="chunk"><b>Weiter:</b> También llevo … <i>· oder:</i> Y me pongo …</div>
+      <div class="chunk"><b>Stücke:</b> un jersey azul de lana · una camiseta de rayas · una sudadera crema · un vestido elegante de seda</div>
+      <div class="chunk"><b>Schluss:</b> Me parece una combinación muy elegante. <i>· oder:</i> Esta combinación me queda muy bien.</div>
+    </div>
+    <div class="card">
+      <div class="label">Checkliste vor dem Abgeben</div>
+      <ul class="check">
+        <li><b>me pongo</b> richtig geschrieben (nicht „pongo me“)</li>
+        <li>Artikel: un / una / unos / unas zum Wort passend</li>
+        <li>Farben angeglichen — <b>außer</b> rosa, naranja, violeta/lila, beige, crema</li>
+        <li>Material mit <b>de</b>: de algodón, de cuero, de lana, de seda</li>
+        <li>„in Grau“ = <b>en gris</b> · „graue Schuhe“ = zapatillas <b>grises</b></li>
+        <li>Schlusssatz nicht vergessen</li>
+      </ul>
+    </div>`;
+  let hidden = false;
+  $("#hideM").onclick = ()=>{
+    hidden = !hidden;
+    $("#modelo").style.filter = hidden ? "blur(7px)" : "none";
+    $("#hideM").textContent = hidden ? "Text wieder zeigen" : "Text verdecken & selbst aufsagen";
+  };
+}
+
+/* ================= MISC ================= */
+function emptyState(){
+  return `<div class="card empty"><span class="emo">🎉</span>
+    Keine Fehler in der Liste — alles sitzt!<br>Wähl oben einen anderen Block.</div>`;
+}
+
+renderChips();
+startMode();
+</script>
+</body>
+</html>
